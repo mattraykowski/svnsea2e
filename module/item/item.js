@@ -15,6 +15,8 @@ export class SvnSea2EItem extends Item {
     const actorData = this.actor ? this.actor.data : {}
     const data = itemData.data
 
+    console.log(data);
+
     if (itemData.type === 'scheme') {
       this._prepareSchemeData(itemData.data)
     } else if (itemData.type === 'advantage') {
