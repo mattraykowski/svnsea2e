@@ -1,5 +1,6 @@
 .tabs {
   border-bottom: $brd-s-md-dk;
+  background-color: #fff;
 
   h2 {
     border: $no-border;
@@ -10,27 +11,25 @@
   .item {
     font-weight: bold;
     text-transform: uppercase;
-    border-top: $brd-s-md-dk;
-    border-left: $brd-s-md-dk;
-    border-right: $brd-s-md-dk;
-    border-bottom: 0;
-    border-top-left-radius: $padding-sm;
-    border-top-right-radius: $padding-sm;
-    padding: $padding-sm;
-    margin: $padding-sm $padding-sm 0 $padding-sm;
-    background: $c-prim;
+    border-bottom: 2px solid #771213;
+
+    //padding: $padding-sm;
+    //margin: $padding-sm $padding-sm 0 $padding-sm;
+    //background: $c-prim;
 
     h2 {
-      color: $f-c-lt;
       background: none;
+      color: $f-c-dk;
     }
   }
 
   .item.active {
-    background: $c-sec;
+    //background: $c-sec;
+    background-color: #771213;
     text-shadow: none;
     h2 {
-      color: $f-c-dk;
+      color: #fff;
+      background: none;
     }
   }
 }

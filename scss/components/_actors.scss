@@ -2,6 +2,7 @@
   flex: 0 0 195px;
 
   .profile-img {
+    background-color: darkgrey;
     flex: 0 0 $profile-img-lg-size;
     height: $profile-img-lg-size;
     width: $profile-img-lg-size;
@@ -16,7 +17,7 @@
   .wounds .pts.bigger {
     padding-left: 37px;
   }
-  
+
   .raise-tracking {
     button {
       width: 2em;

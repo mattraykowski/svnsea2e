@@ -15,6 +15,7 @@ input[type='text'] {
 
 nav.sheet-tabs {
   height: auto;
+  border-top: none;
 }
 
 .sheet-header {
@@ -66,7 +67,8 @@ nav.sheet-tabs {
     text-align: right;
   }
 
-  .herospts, .wealth {
+  .herospts,
+  .wealth {
     max-width: 30px;
     margin-right: 10px;
   }
@@ -217,4 +219,22 @@ nav.sheet-tabs {
 // Brute specific stuff
 .brute h2.ability-title {
   text-shadow: none;
+}
+
+.traits-wrapper {
+  flex: 0;
+}
+
+.traits .trait {
+  width: 150px;
+}
+
+.skills {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.skills .skill {
+  width: 175px;
 }

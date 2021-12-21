@@ -21,13 +21,20 @@
 }
 
 .rollable {
+  padding-left: 1em;
   &:focus,
   &:hover {
-    text-shadow: 0 0 10px $c-sec;
+    text-shadow: 0 0 0.5em $c-sec;
     cursor: pointer;
     background-image: url('../icons/d10.svg');
-    background-size: 20px;
+    background-size: 1em;
     background-repeat: no-repeat;
-    padding-left: 20px;
   }
+}
+
+button.roll {
+  flex: 0;
+  background-image: url('../icons/d10.svg');
+  background-size: cover;
+  opacity: 0.75;
 }

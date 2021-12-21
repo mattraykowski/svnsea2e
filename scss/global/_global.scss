@@ -5,6 +5,7 @@ body#tinymce.mce-content-body {
 }
 
 body {
+  font-size: 12px;
   scrollbar-color: $c-prim-lt $c-prim-dk;
 }
 
@@ -142,11 +143,11 @@ input[type='range']::-webkit-slider-thumb {
     border: $brd-s-sm-lt;
   }
 
-  #nav-toggle {
-    @include main-bg: hover {
-      text-shadow: 0 0 10px $c-sec;
-    }
-  }
+  //#nav-toggle {
+  //  @include main-bg: hover {
+  //    text-shadow: 0 0 10px $c-sec;
+  //  }
+  //}
 
   #scene-list {
     .scene.gm {

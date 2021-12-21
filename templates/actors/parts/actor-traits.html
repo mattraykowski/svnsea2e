@@ -1,50 +1,57 @@
 
 <div class="tab traits" data-group="primary" data-tab="traits">
-  <h3 class="trait-title">{{localize "SVNSEA2E.Traits"}}</h3>
-  <div class="traits grid grid-3col">
-    {{#each traits as |trait key|}}
-      <div class="trait flexrow flex-group flex-left">
-        <span class="trait-name">
-          {{trait.label}}
-        </span>
-        <span>
-        {{#for 1 trait.max 1}}
-          {{#iff trait.value '>=' @index}}
-            <i data-name="data.traits.{{trait.name}}.value" data-value="{{@index}}" data-type="trait" data-key="{{trait.name}}" class="fillable fas fa-circle"></i>
-          {{else}}
-            <i data-name="data.traits.{{trait.name}}.value" data-value="{{@index}}" data-type="trait" data-key="{{trait.name}}" class="fillable far fa-circle"></i>
-          {{/iff}}
-        {{/for}}
-        </span>
+
+  <div class="flexrow">
+    <div class="traits-wrapper">
+      <h3 class="trait-title">{{localize "SVNSEA2E.Traits"}}</h3>
+      <div class="traits flexcol">
+        {{#each traits as |trait key|}}
+          <div class="trait flexrow flex-group flex-left">
+            <span class="trait-name">
+              {{trait.label}}
+            </span>
+            <span>
+            {{#for 1 trait.max 1}}
+              {{#iff trait.value '>=' @index}}
+                <i data-name="data.traits.{{trait.name}}.value" data-value="{{@index}}" data-type="trait" data-key="{{trait.name}}" class="fillable fas fa-circle"></i>
+              {{else}}
+                <i data-name="data.traits.{{trait.name}}.value" data-value="{{@index}}" data-type="trait" data-key="{{trait.name}}" class="fillable far fa-circle"></i>
+              {{/iff}}
+            {{/for}}
+            </span>
+          </div>
+        {{/each}}
       </div>
-    {{/each}}
-  </div>
-  {{#if hasSkills}}
-    <h3 class="skill-title">{{localize "SVNSEA2E.Skills"}}</h3>
-    <div class="skills grid grid-3col">
-      {{#each skills as |skill key|}}
-        <div class="skill flexrow flex-group flex-left">
-          <span class="skill-name rollable" data-roll="{{skill.value}}" data-label="{{skill.name}}">
-            {{skill.label}}
-          </span>
-          <span>
-          {{#for 1 skill.max 1}}
-            {{#iff skill.value '>=' @index}}
-              <i data-name="data.skills.{{skill.name}}.value" data-value="{{@index}}" data-type="skill" data-key="{{skill.name}}" class="fillable fas fa-circle"></i>
-            {{else}}
-              <i data-name="data.skills.{{skill.name}}.value" data-value="{{@index}}" data-type="skill" data-key="{{skill.name}}" class="fillable far fa-circle"></i>
-            {{/iff}}
-          {{/for}}
-          </span>
-        </div>
-      {{/each}}
     </div>
-    <div class="skills grid grid-3col">
-      <div class="skill flexrow flex-group flex-left">{{localize "SVNSEA2E.SkillRank3"}}</div>
-      <div class="skill flexrow flex-group flex-left">{{localize "SVNSEA2E.SkillRank4"}}</div>
-      <div class="skill flexrow flex-group flex-left">{{localize "SVNSEA2E.SkillRank5"}}</div>
+  {{#if hasSkills}}
+    <div>
+      <h3 class="skill-title">{{localize "SVNSEA2E.Skills"}}</h3>
+      <div class="skills">
+        {{#each skills as |skill key|}}
+          <div class="skill flexrow flex-group flex-left">
+            <span class="skill-name rollable" data-roll="{{skill.value}}" data-label="{{skill.name}}">
+              {{skill.label}}
+            </span>
+            <span>
+            {{#for 1 skill.max 1}}
+              {{#iff skill.value '>=' @index}}
+                <i data-name="data.skills.{{skill.name}}.value" data-value="{{@index}}" data-type="skill" data-key="{{skill.name}}" class="fillable fas fa-circle"></i>
+              {{else}}
+                <i data-name="data.skills.{{skill.name}}.value" data-value="{{@index}}" data-type="skill" data-key="{{skill.name}}" class="fillable far fa-circle"></i>
+              {{/iff}}
+            {{/for}}
+            </span>
+          </div>
+        {{/each}}
+      </div>
+      <div class="skills grid grid-3col">
+        <div class="skill flexrow flex-group flex-left">{{localize "SVNSEA2E.SkillRank3"}}</div>
+        <div class="skill flexrow flex-group flex-left">{{localize "SVNSEA2E.SkillRank4"}}</div>
+        <div class="skill flexrow flex-group flex-left">{{localize "SVNSEA2E.SkillRank5"}}</div>
+      </div>
     </div>
   {{/if}}
+  </div>
   {{#if hasLanguages}}
     <h3 class="language-title">{{localize "SVNSEA2E.Languages"}}</h3>
     <div class="language flexrow flex-group flex-left">
