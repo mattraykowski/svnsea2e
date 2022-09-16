@@ -1,0 +1,33 @@
+.window-app {
+  //color: $f-c-dk;
+
+  .window-content {
+    color: $f-c-dk;
+    background: $c-sec;
+  }
+
+  .window-header .window-title,
+  .window-header a {
+    color: $f-c-lt;
+  }
+
+  .window-header .window-title {
+    padding-left: $padding-sm;
+  }
+
+  .window-header {
+    border-bottom: $brd-s-sm-lt;
+  }
+}
+
+.rollable {
+  &:focus,
+  &:hover {
+    text-shadow: 0 0 10px $c-sec;
+    cursor: pointer;
+    background-image: url('../../../public/icons/d10.svg');
+    background-size: 20px;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+  }
+}

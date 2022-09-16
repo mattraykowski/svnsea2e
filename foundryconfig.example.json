@@ -1,0 +1,7 @@
+{
+  "dataPath": "/path/to/foundry/data",
+  "systemName": "svnsea2e",
+  "repository": "https://github.com/Detailing-the-Realm/svnsea2e",
+  "rawURL": "https://github.com/Detailing-the-Realm/svnsea2e/releases",
+  "downloadURL": "https://github.com/Detailing-the-Realm/svnsea2e/releases"
+}
