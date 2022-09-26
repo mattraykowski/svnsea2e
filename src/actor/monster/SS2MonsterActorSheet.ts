@@ -1,10 +1,11 @@
-import ActorSheetSS2e from './base.js';
 import { getItems } from '../../helpers.js';
+import { ActorType, SvnseaActorSheetData } from '../types';
+import SS2ActorSheet from '../sheetBase';
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @ext'../../dice.js't}
  */
-export class ActorSheetSS2eMonster extends ActorSheetSS2e {
+export class SS2MonsterActorSheet extends SS2ActorSheet<ActorType.Monster> {
   /** @override */
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
@@ -21,14 +22,18 @@ export class ActorSheetSS2eMonster extends ActorSheetSS2e {
   }
 
   /**
-   * Organize and classify Items for Character sheets.
+   * Organize and classify Items for Character sheets. Mutate the `sheetData`
+   * to get used by the templates.
    *
-   * @param {Object} actor The actor data to prepare.
-   * @param {Object} sheetData The sheet to prepare.
+   * @param data Original sheet data.
+   * @param sheetData Mutated sheet data.
    *
    * @return {undefined}
    */
-  _prepareMonsterItems(data, sheetData) {
+  prepareSheetData(
+    data: SvnseaActorSheetData<ActorType.PlayerCharacter>,
+    sheetData: SvnseaActorSheetData<ActorType.PlayerCharacter>,
+  ): void {
     sheetData.fear = data.document.system.fear;
     sheetData.monsterqualities = getItems(data, 'monsterquality');
   }

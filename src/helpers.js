@@ -33,30 +33,35 @@ export const tuplesToObject = (obj, [k, v]) => ({ ...obj, [k]: v });
 
 // Localize CONFIG objects once up-front
 const LOCALIZABLE_CONFIG_ENTRIES = [
-    'actorTypes',
-    'natTypes',
-    'artifactTypes',
-    'crewStatuses',
-    'durations',
-    'itemTypes',
-    'languages',
-    'nations',
-    'traits',
-    'shipRoles',
-    'skills',
-    'sorceryTypes',
-    'sorceryCats',
-    'sorcerySubcats',
-    'storyStatuses',
+  'actorTypes',
+  'natTypes',
+  'artifactTypes',
+  'crewStatuses',
+  'durations',
+  'itemTypes',
+  'languages',
+  'nations',
+  'traits',
+  'shipRoles',
+  'skills',
+  'sorceryTypes',
+  'sorceryCats',
+  'sorcerySubcats',
+  'storyStatuses',
 ];
-export const localizeConfig = (config, localizable = LOCALIZABLE_CONFIG_ENTRIES) => Object
-    .entries(config)
+export const localizeConfig = (
+  config,
+  localizable = LOCALIZABLE_CONFIG_ENTRIES,
+) =>
+  Object.entries(config)
     .filter(([k, v]) => localizable.includes(k))
     .map(([k, v]) => [
-        k,
-        Object.entries(v).map(([k2, v2]) => [k2, game.i18n.localize(v2)]).reduce(tuplesToObject, {})
+      k,
+      Object.entries(v)
+        .map(([k2, v2]) => [k2, game.i18n.localize(v2)])
+        .reduce(tuplesToObject, {}),
     ])
     .sort(([k1, _v1], [k2, _v2]) => {
-        return k1.toLocaleString().localeCompare(k2.toLocaleString());
+      return k1.toLocaleString().localeCompare(k2.toLocaleString());
     })
-    .reduce(tuplesToObject, {})
+    .reduce(tuplesToObject, {});

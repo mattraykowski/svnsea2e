@@ -31,7 +31,7 @@ const nations = {
 
 const natTypes = {
   ...nations,
-  gisles: 'SVNSEA2E.RegionGlamourIsles'
+  gisles: 'SVNSEA2E.RegionGlamourIsles',
 };
 
 const languages = {
@@ -67,17 +67,20 @@ const languages = {
   zeeg: 'SVNSEA2E.LanguageZeeg',
 };
 
-const traits = {
+export const traits = {
   brawn: 'SVNSEA2E.TraitBrawn',
   finesse: 'SVNSEA2E.TraitFinesse',
   resolve: 'SVNSEA2E.TraitResolve',
   wits: 'SVNSEA2E.TraitWits',
   panache: 'SVNSEA2E.TraitPanache',
+};
+
+export const vtraits = {
   influence: 'SVNSEA2E.TraitInfluence',
   strength: 'SVNSEA2E.TraitStrength',
 };
 
-const skills = {
+export const skills = {
   aim: 'SVNSEA2E.SkillAim',
   athletics: 'SVNSEA2E.SkillAthletics',
   brawl: 'SVNSEA2E.SkillBrawl',
@@ -98,9 +101,9 @@ const skills = {
 
 const storyStatuses = {
   abandoned: 'SVNSEA2E.StatusAbandoned',
-      complete: 'SVNSEA2E.StatusComplete',
-      inprogress: 'SVNSEA2E.StatusInProgress',
-      future: 'SVNSEA2E.StatusFuture',
+  complete: 'SVNSEA2E.StatusComplete',
+  inprogress: 'SVNSEA2E.StatusInProgress',
+  future: 'SVNSEA2E.StatusFuture',
 };
 
 const sorceryTypes = {
@@ -206,7 +209,14 @@ const shipRoles = {
   seaman: 'SVNSEA2E.Seaman',
 };
 
-export const SVNSEA_CONFIG = {
+export interface EventDataSet {
+  name: string;
+  key: string;
+  value: string;
+  type: string;
+}
+
+export const SVNSEA_CONFIG: { [key: string]: any } = {
   ASCII: `
 ==================================================
   _____ _   _       ____
@@ -330,12 +340,5 @@ export const SVNSEA_CONFIG = {
       [6, 6, 8],
       [6, 7, 7],
     ],
-  }
+  },
 };
-
-export function getGame(): Game {
-  if(!(game instanceof Game)) {
-    throw new Error('game is not initialized yet!');
-  }
-  return game;
-}

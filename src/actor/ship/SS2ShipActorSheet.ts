@@ -1,13 +1,16 @@
-import ActorSheetSS2e from './base.js';
 import { getItems } from '../../helpers.js';
+import { ActorType, SvnseaActorSheetData } from '../types';
+import SS2ActorSheet from '../sheetBase';
+import { SS2ShipDataProperties } from './dataSource';
+
+type ShipSheetData = SS2ShipDataProperties['data'];
 
 /**
  * Extend the basic ItemSheet with some very simple modifications
  * @extends {ItemSheet}
  */
-export class ActorSheetSS2eShip extends ActorSheetSS2e {
-  /** @override */
-  static get defaultOptions() {
+export class SS2ShipActorSheet extends SS2ActorSheet {
+  static override get defaultOptions(): ActorSheet.Options {
     return mergeObject(super.defaultOptions, {
       classes: ['svnsea2e', 'sheet', 'actor', 'ship'],
       template: 'systems/svnsea2e/templates/actors/ship.html',
@@ -22,6 +25,20 @@ export class ActorSheetSS2eShip extends ActorSheetSS2e {
   }
 
   /**
+   * Organize and classify Items for Character sheets. Mutate the `sheetData`
+   * to get used by the templates.
+   *
+   * @param data Original sheet data.
+   * @param sheetData Mutated sheet data.
+   *
+   * @return {undefined}
+   */
+  prepareSheetData(data, sheetData): void {
+    this._prepareShipItems(data, sheetData);
+    // @ts-ignore
+    this._processFlags(data, data.document.flags, sheetData);
+  }
+  /**
    * Organize and classify Items for Character sheets.
    *
    * @param {Object} actorData The actor to prepare.
@@ -29,7 +46,7 @@ export class ActorSheetSS2eShip extends ActorSheetSS2e {
    * @return {undefined}
    */
   _prepareShipItems(data, sheetData) {
-    const actorData = data.document.system;
+    const actorData = data.document.system as ShipSheetData;
     sheetData.adventures = getItems(data, 'shipadventure');
     sheetData.backgrounds = getItems(data, 'shipbackground');
     sheetData.origin = actorData.origin;
@@ -41,16 +58,22 @@ export class ActorSheetSS2eShip extends ActorSheetSS2e {
   /**
    * Process any flags that the actor might have that would affect the sheet .
    *
-   * @param {Obejct} data The data object to update with any flag data.
-   * @param {Object} flags The set of flags for the Actor
+   * @param data Original sheet data.
+   * @param flags The set of flags for the Actor
+   * @param sheetData Mutated sheet data.
    */
-  _processFlags(data, flags, sheetData) {
+  _processFlags(
+    data: SvnseaActorSheetData<ActorType.Ship>,
+    flags: any,
+    sheetData: SvnseaActorSheetData<ActorType.Ship>,
+  ) {
     let svnsea2e = flags.svnsea2e;
 
     if (!svnsea2e) svnsea2e = {};
     if (!svnsea2e.shipsCrew) svnsea2e.shipsCrew = {};
     if (!svnsea2e.shipsCrew.members) svnsea2e.shipsCrew.members = [];
 
+    console.log('process flags', flags.svnsea2e);
     const crew = {
       captain: {
         label: game.i18n.localize('SVNSEA2E.Captain'),
@@ -207,7 +230,7 @@ export class ActorSheetSS2eShip extends ActorSheetSS2e {
       surgeon,
     ] = svnsea2e.shipsCrew.members.reduce(
       (arr, id) => {
-        const actor = game.actors.get(id);
+        const actor = game.actors?.get(id);
 
         if (!actor) return arr;
 

@@ -1,10 +1,11 @@
-import ActorSheetSS2e from './base.js';
 import { getItems } from '../../helpers.js';
+import { ActorType, SvnseaActorSheetData } from '../types';
+import SS2ActorSheet from '../sheetBase';
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @ext'../../dice.js't}
  */
-export class ActorSheetSS2eVillain extends ActorSheetSS2e {
+export class SS2VillainActorSheet extends SS2ActorSheet<ActorType.Villain> {
   /** @override */
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
@@ -21,13 +22,18 @@ export class ActorSheetSS2eVillain extends ActorSheetSS2e {
   }
 
   /**
-   * Organize and classify Items for Character sheets.
+   * Organize and classify Items for Character sheets. Mutate the `sheetData`
+   * to get used by the templates.
    *
-   * @param {Object} actorData The actor to prepare.
+   * @param data Original sheet data.
+   * @param sheetData Mutated sheet data.
    *
    * @return {undefined}
    */
-  _prepareVillainItems(data, sheetData) {
+  prepareSheetData(
+    data: SvnseaActorSheetData<ActorType.PlayerCharacter>,
+    sheetData: SvnseaActorSheetData<ActorType.PlayerCharacter>,
+  ): void {
     // Assign and return
     sheetData.villainy = data.document.system.villainy;
     sheetData.advantages = getItems(data, 'advantage');

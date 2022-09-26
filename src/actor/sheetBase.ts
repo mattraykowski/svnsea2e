@@ -1,107 +1,164 @@
-import LanguageSelector from '../../apps/language-selector.js';
-import { updateInitiative } from '../../combat.js';
-import { roll } from '../../roll/roll.js';
-import { isValidGlamorIsles } from '../../helpers.js';
+import LanguageSelector from '../apps/language-selector.js';
+import { updateInitiative } from '../combat.js';
+import { roll } from '../roll/roll.js';
+import { isValidGlamorIsles } from '../helpers.js';
+import { SheetTrait, SheetTraits } from './types';
+import { SS2Actor } from '../actor';
+import { AlphaMap, StringMap } from '../global';
+import { EventDataSet } from '../config';
+import {
+  SS2ActorSheetData,
+  SS2ActorSheetDataBase,
+} from './actorDataProperties';
+import { generateSheetDataOptions, generateSheetHelpers } from './actorHelpers';
 
 /**
  * Extend the basic ActorSheet class to do all the 7th Sea things!
  * This sheet is an Abstract layer which is not used.
  * @extends {ActorSheet}
  */
-export default class ActorSheetSS2e extends ActorSheet {
-  /** @override */
-  static get defaultOptions() {
+export default class SS2ActorSheet extends ActorSheet<
+  ActorSheet.Options,
+  SS2ActorSheetData
+> {
+  static override get defaultOptions() {
     return mergeObject(super.defaultOptions, {
       width: 850,
       height: 750,
     });
   }
 
-  /* -------------------------------------------- */
-
-  /** @override */
-  getData(options) {
-    const data = super.getData(options);
-    const actor = data.document;
-    const actorData = actor.system;
-
-    const { isOwner: owner, limited } = this.document;
-    const sheetData = {
-      owner,
-      limited,
-      options: this.options,
-      editable: this.isEditable,
-      cssClass: owner ? 'editable' : 'locked',
-      isCorrupt: actorData.corruptionpts > 0,
-      isPlayerCharacter: actor.type === 'playercharacter',
-      isHero: actor.type === 'hero',
-      isVillain: actor.type === 'villain',
-      isMonster: actor.type === 'monster',
-      isNotBrute: actor.type !== 'brute',
-      hasSkills: typeof actorData.skills !== 'undefined',
-      hasLanguages: typeof actorData.languages !== 'undefined',
-      config: CONFIG.svnsea2e,
-      dtypes: ['String', 'Number', 'Boolean'],
-
-      // Core Actor data:
-      name: actor.name,
-      img: actor.img,
-      initiative: actorData.initiative,
-      age: actorData.age,
-      nation: actorData.nation,
-      wealth: actorData.wealth,
-      heropts: actorData.heropts,
-      corruptionpts: actorData.corruptionpts,
-      wounds: actorData.wounds,
-      dwounds: actorData.dwounds,
-      traits: this._prepareTraits(actor),
-      selectedlangs: this._prepareLanguages(actor),
-
-      // Concept tab.
-      religion: actorData.religion,
-      reputation: actorData.reputation,
-      concept: actorData.concept,
-      arcana: actorData.arcana,
-
-      // Inventory Tab
-      equipment: actorData.equipment,
-
-      // Fate Tab
-      redemption: actorData.redemption,
+  getSheetDataBase(): SS2ActorSheetDataBase {
+    const { isOwner: owner, limited } = this.actor;
+    const sheetBase: SS2ActorSheetDataBase = {
+      ...generateSheetDataOptions(this.actor, this.options, this.isEditable),
+      ...generateSheetHelpers({ isCorrupt: true }),
     };
-
-    // Prepare items.
-    if (actor.type === 'playercharacter') {
-      this._prepareCharacterItems(data, sheetData);
-    } else if (actor.type === 'hero') {
-      this._prepareHeroItems(data, sheetData);
-    } else if (actor.type === 'villain') {
-      this._prepareVillainItems(data, sheetData);
-    } else if (actor.type === 'monster') {
-      this._prepareMonsterItems(data, sheetData);
-    } else if (actor.type === 'ship') {
-      this._prepareShipItems(data, sheetData);
-      this._processFlags(actorData, actor.flags, sheetData);
-    } else if (actor.type === 'dangerpts') {
-      sheetData.points = actorData.points;
-    } else if (actor.type === 'brute') {
-      sheetData.ability = actorData.ability;
-    }
-    return sheetData;
+    return sheetBase;
   }
 
   /* -------------------------------------------- */
 
-  _prepareButtonTitles(data) {
-    for (const item of Object.values(data)) {
-      item.editlabel = game.i18n.format('SVNSEA2E.EditLabel', {
-        label: data.name,
-      });
-      item.deletelabel = game.i18n.format('SVNSEA2E.DeleteLabel', {
-        label: data.name,
-      });
-    }
-  }
+  // /** @override */
+  // override getData(): SS2ActorSheetData<T> {
+  //   const baseData = super.getData() as ActorSheet.Data;
+  //   // console.log(this.actor.items);
+  //   const actorData = this.actor.system;
+  //   const { isOwner: owner, limited } = this.actor;
+  //   //
+  //   // console.log('baseData', baseData.data);
+  //   //
+  //   // const actorSheetData: any = {
+  //   //   ...baseData,
+  //   // };
+  //
+  //   const sheetData: SS2ActorSheetData<T> = {
+  //     ...baseData,
+  //     sheet: this.buildSheetData(),
+  //
+  //     // cssClass: owner ? 'editable' : 'locked',
+  //     // options: this.options,
+  //     // editable: this.isEditable,
+  //     // actor: baseData.actor,
+  //     // items: baseData.items,
+  //     sheet: {
+  //       owner,
+  //       limited,
+  //
+  //       config: CONFIG.svnsea2e,
+  //       dtypes: ['String', 'Number', 'Boolean'],
+  //       name: this.actor.name,
+  //       img: this.actor.img,
+  //
+  //       // initiative: actorData.initiative,
+  //
+  //       // These will be overriden by underlying implementations.
+  //       isCorrupt: false,
+  //       isPlayerCharacter: false,
+  //       isHero: false,
+  //       isVillain: false,
+  //       isMonster: false,
+  //       isNotBrute: true,
+  //       hasSkills: false,
+  //       hasLanguages: false,
+  //       traits: this._prepareTraits(this.actor),
+  //     },
+  //   };
+  //
+  //   // console.log('sheet data traits', sheetData.sheet.traits);
+  //   return sheetData;
+  //
+  //   // const sheetData = {
+  //   //   ...sheetDataOrigin,
+  //
+  //   // isCorrupt: actorData.corruptionpts > 0,
+  //   // isPlayerCharacter: this.actor.type === ActorType.PlayerCharacter,
+  //   // isHero: actor.type === ActorType.Hero,
+  //   // isVillain: actor.type === ActorType.Villain,
+  //   // isMonster: actor.type === ActorType.Monster,
+  //   // isNotBrute: actor.type !== ActorType.Brute,
+  //   // hasSkills: typeof actorData.skills !== 'undefined',
+  //   // hasLanguages: typeof actorData.languages !== 'undefined',
+  //
+  //   // Core Actor data:
+  //
+  //   // age: actorData.age,
+  //   // nation: actorData.nation,
+  //   // wealth: actorData.wealth,
+  //   // heropts: actorData.heropts,
+  //   // corruptionpts: actorData.corruptionpts,
+  //   // wounds: actorData.wounds,
+  //   // dwounds: actorData.dwounds,
+  //   // traits: this._prepareTraits(actor),
+  //   // selectedlangs: this._prepareLanguages(actor),
+  //   //
+  //   // // Concept tab.
+  //   // religion: actorData.religion,
+  //   // reputation: actorData.reputation,
+  //   // concept: actorData.concept,
+  //   // arcana: actorData.arcana,
+  //   //
+  //   // // Inventory Tab
+  //   // equipment: actorData.equipment,
+  //   //
+  //   // // Fate Tab
+  //   // redemption: actorData.redemption,
+  //   // };
+  //
+  //   // this.prepareSheetData(data, sheetData);
+  //   //
+  //   // // Prepare items.
+  //   // if (actor.type === 'playercharacter') {
+  //   //   // this._prepareCharacterItems(data, sheetData);
+  //   //   // } else if (actor.type === 'hero') {
+  //   //   //   this._prepareHeroItems(data, sheetData);
+  //   //   // } else if (actor.type === 'villain') {
+  //   //   //   this._prepareVillainItems(data, sheetData);
+  //   //   // } else if (actor.type === 'monster') {
+  //   //   //   this._prepareMonsterItems(data, sheetData);
+  //   //   // } else if (actor.type === 'ship') {
+  //   //   //   this._prepareShipItems(data, sheetData);
+  //   //   //   this._processFlags(actorData, actor.flags, sheetData);
+  //   //   // } else if (actor.type === 'dangerpts') {
+  //   //   //   sheetData.points = actorData.points;
+  //   // } else if (actor.type === 'brute') {
+  //   //   sheetData.ability = actorData.ability;
+  //   // }
+  //   return sheetData;
+  // }
+
+  /* -------------------------------------------- */
+
+  // _prepareButtonTitles(data) {
+  //   for (const item of Object.values(data)) {
+  //     item.editlabel = game.i18n.format('SVNSEA2E.EditLabel', {
+  //       label: data.name,
+  //     });
+  //     item.deletelabel = game.i18n.format('SVNSEA2E.DeleteLabel', {
+  //       label: data.name,
+  //     });
+  //   }
+  // }
 
   /* -------------------------------------------- */
 
@@ -112,19 +169,24 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @returns {(*&{name: *, label: *})[]|*[]}
    * @private
    */
-  _prepareTraits(actor) {
+  _prepareTraits(actor: SS2Actor): SheetTraits {
     return !['ship', 'dangerpts'].includes(actor.type)
-      ? Object.entries(actor.system.traits).map(([t, trait]) => ({
-          ...trait,
-          name: t,
-          label: CONFIG.svnsea2e.traits[t],
-        }))
+      ? Object.entries(actor.system.traits).map(([t, trait]) => {
+          const sheetTrait: SheetTrait = {
+            ...trait,
+            name: t,
+            label: CONFIG.svnsea2e.traits[t],
+          };
+
+          console.log(CONFIG.svnsea2e.traits);
+          return sheetTrait;
+        })
       : [];
   }
 
   /* -------------------------------------------- */
   /** @override */
-  activateListeners(html) {
+  activateListeners(html: JQuery) {
     super.activateListeners(html);
 
     // Everything below here is only needed if the sheet is editable
@@ -178,23 +240,25 @@ export default class ActorSheetSS2e extends ActorSheet {
 
     // Drag events for macros.
     if (this.actor.isOwner) {
-      const handler = (ev) => this._onDragItemStart(ev);
+      // TODO it appears this handler has been missing a long time?
+      // const handler = (ev: DragEvent) => this._onDragItemStart(ev);
       html.find('li.item').each((i, li) => {
         if (li.classList.contains('inventory-header')) return;
-        li.setAttribute('draggable', true);
-        li.addEventListener('dragstart', handler, false);
+        li.setAttribute('draggable', 'true');
+        // TODO it appears this handler has been missing a long time?
+        // li.addEventListener('dragstart', handler, false);
       });
     }
   }
 
-  _onAddInitiative(event) {
+  _onAddInitiative(event: JQuery.ClickEvent) {
     event.preventDefault();
     const initiative = (this.actor.system.initiative || 0) + 1;
     console.log('new initiative', initiative);
     updateInitiative(this.actor.id, initiative);
   }
 
-  _onMinusInitiative(event) {
+  _onMinusInitiative(event: JQuery.ClickEvent) {
     event.preventDefault();
     const initiative = (this.actor.system.initiative || 0) - 1;
     updateInitiative(this.actor.id, initiative);
@@ -207,7 +271,7 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @param {Object} actor       The actor
    * @private
    */
-  _prepareLanguages(actor) {
+  _prepareLanguages(actor: SS2Actor) {
     // Languages only apply to PCs, heroes, or villains.
     if (!['playercharacter', 'hero', 'villain'].includes(actor.type))
       return undefined;
@@ -228,12 +292,12 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @param {Object} event      event sent
    * @private
    */
-  async _processCircle(event) {
+  async _processCircle(event: JQuery.ClickEvent) {
     const actor = this.document;
     const actorData = actor.system;
-    const dataSet = event.target.dataset;
+    const dataSet: EventDataSet = event.target.dataset;
 
-    let updateObj = {};
+    let updateObj: AlphaMap = {};
     let dataSetValue = parseInt(dataSet.value);
 
     let tval = 0;
@@ -243,17 +307,33 @@ export default class ActorSheetSS2e extends ActorSheet {
           tval = actorData.skills[dataSet.key].value;
           break;
         case 'trait':
-          if (dataSet.key === 'influence' || dataSet.key === 'strength') {
-            tval = actorData.traits[dataSet.key].value;
+          if (dataSet.key === 'influence') {
+            tval = actorData.traits.influence.value;
+          } else if (dataSet.key === 'strength') {
+            tval = actorData.traits.strength.value;
           } else {
             dataSetValue = 2;
           }
           break;
         case 'corrupt':
-          tval = actorData[dataSet.key];
+          //  dataSet.key for 'corrupt' should always be 'corruptionpts'.
+          if (dataSet.key !== 'corruptionpts') {
+            console.log(
+              'Invalid corruption key when processing circles: ' + dataSet.key,
+            );
+            return;
+          }
+          tval = actorData.corruptionpts;
           break;
         case 'fear':
-          tval = actorData[dataSet.key].value;
+          //  dataSet.key for 'corrupt' should always be 'corruptionpts'.
+          if (dataSet.key !== 'fear') {
+            console.log(
+              'Invalid fear key when processing circles: ' + dataSet.key,
+            );
+            return;
+          }
+          tval = actorData.fear.value;
           break;
       }
 
@@ -273,15 +353,15 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @param {Object} event      event sent
    * @private
    */
-  _processBruteWounds(event) {
+  async _processBruteWounds(event: JQuery.ClickEvent) {
     const actor = this.document;
     const actorData = actor.system;
-    let updateObj = {};
+    let updateObj: AlphaMap = {};
     updateObj['data.wounds.value'] = event.target.dataset.value;
     if (actorData.wounds.value == 1 && event.target.dataset.value == 1)
       updateObj['data.wounds.value'] = 0;
 
-    actor.update(updateObj);
+    await actor.update(updateObj);
   }
 
   /* -------------------------------------------- */
@@ -291,11 +371,11 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @param {Object} event      event sent
    * @private
    */
-  _processWounds(event) {
+  async _processWounds(event: JQuery.ClickEvent) {
     const actor = this.document;
     const actorData = actor.system;
     const edata = event.target.dataset;
-    let updateObj = {};
+    let updateObj: AlphaMap = {};
     let wounds = actorData.wounds.value;
     let dwounds = actorData.dwounds.value;
 
@@ -323,7 +403,7 @@ export default class ActorSheetSS2e extends ActorSheet {
     updateObj['system.wounds.value'] = wounds;
     updateObj['system.dwounds.value'] = dwounds;
 
-    actor.update(updateObj);
+    await actor.update(updateObj);
   }
 
   /* -------------------------------------------- */
@@ -333,7 +413,7 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @param {Event} event   The click event which originated the selection
    * @private
    */
-  _onLanguageSelector(event) {
+  _onLanguageSelector(event: JQuery.ClickEvent) {
     event.preventDefault();
     const a = event.currentTarget;
     const options = {
@@ -351,7 +431,7 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @returns {Promise<Item5e[]>}  The newly created item.
    * @private
    */
-  _onItemCreate(event) {
+  _onItemCreate(event: JQuery.ClickEvent) {
     event.preventDefault();
     const header = event.currentTarget;
     // Get the type of item to create.
@@ -375,14 +455,16 @@ export default class ActorSheetSS2e extends ActorSheet {
   /**
    * Handle editing an existing Owned Item for the Actor.
    * @param {Event} event    The originating click event.
-   * @returns {ItemSheet5e}  The rendered item sheet.
    * @private
    */
-  _onItemEdit(event) {
+  _onItemEdit(event: JQuery.ClickEvent): void {
     event.preventDefault();
     const li = event.currentTarget.closest('.item');
     const item = this.actor.items.get(li.dataset.itemId);
-    return item.sheet.render(true);
+    if (item) {
+      item.sheet?.render(true);
+    }
+    return;
   }
 
   /* -------------------------------------------- */
@@ -392,7 +474,7 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @param {Event} event   The originating click event
    * @private
    */
-  async _onItemDelete(event) {
+  async _onItemDelete(event: JQuery.ClickEvent) {
     event.preventDefault();
     const li = event.currentTarget.closest('.item');
     const item = this.actor.items.get(li.dataset.itemId);
@@ -411,10 +493,18 @@ export default class ActorSheetSS2e extends ActorSheet {
    * Handle rolling of an item from the Actor sheet, obtaining the Item instance and dispatching to it's roll method
    * @private
    */
-  async _onItemSummary(event) {
+  async _onItemSummary(event: JQuery.ClickEvent) {
     event.preventDefault();
     const li = $(event.currentTarget).closest('.item');
+    const itemId = li.data('itemId');
     const item = this.actor.items.get(li.data('itemId'));
+
+    if (!item) {
+      console.error(`Unable to find item ${itemId} to fold/expand.`);
+      return;
+    }
+    // TODO update when v10 types are out
+    // @ts-ignore
     const chatData = await item.getChatData({ secrets: this.actor.owner });
 
     // Toggle summary
@@ -436,12 +526,18 @@ export default class ActorSheetSS2e extends ActorSheet {
   /* -------------------------------------------- */
 
   /** @override */
-  async _onDrop(event) {
+  async _onDrop(event: DragEvent) {
     event.preventDefault();
 
     // Get dropped data
     let data;
     try {
+      // If, for some reason, there's no data in the drop then return false.
+      // We will do if there is a problem parsing the drop's JSON or
+      // the drop data is empty.
+      if (!event.dataTransfer) {
+        return false;
+      }
       data = JSON.parse(event.dataTransfer.getData('text/plain'));
     } catch (err) {
       return false;
@@ -468,7 +564,7 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @return {Object}           OwnedItem data _getIndexeso create
    * @private
    */
-  async _onDropActor(event, data) {}
+  async _onDropActor(event: DragEvent, data: any) {}
 
   /* -------------------------------------------- */
 
@@ -479,21 +575,23 @@ export default class ActorSheetSS2e extends ActorSheet {
    * @return {Object}             OwnedItem data to create
    * @private
    */
-  async _onDropItem(event, data) {
+  async _onDropItem(event: DragEvent, data: any) {
     if (!this.actor.isOwner) return false;
+    // TODO update this when v10 types are out
+    // @ts-ignore
     const item = await Item.implementation.fromDropData(data);
 
     // Handle item sorting within the same Actor
     const actor = this.actor;
     const sameActor =
       data.actorId === actor.id ||
-      (actor.isToken && data.tokenId === actor.token.id);
+      (actor.isToken && data.tokenId === actor.token?.id);
     if (sameActor) return this._onSortItem(event, item);
 
     // Non-sorcery items cannot have duplicate entries on the actor.
     const actorHasDrop = await this._doesActorHaveItem(item.type, item.name);
     if (item.type !== 'sorcery' && actorHasDrop) {
-      return ui.notifications.error(
+      return ui.notifications?.error(
         game.i18n.format('SVNSEA2E.ItemExists', {
           type: item.type,
           name: item.name,
@@ -509,7 +607,7 @@ export default class ActorSheetSS2e extends ActorSheet {
         // Glamour Isles backgrounds applies to Highland, Avalon, and Inismore.
         (item.system.nation === 'gisles' && !isValidGlamorIsles(this.actor))
       ) {
-        return ui.notifications.error(
+        return ui.notifications?.error(
           game.i18n.format('SVNSEA2E.WrongNation', {
             bgnation: game.i18n.localize(
               CONFIG.svnsea2e.nations[item.system.nation],
@@ -531,11 +629,14 @@ export default class ActorSheetSS2e extends ActorSheet {
 
   async _updateBackgroundSkills(item, adj) {
     const actorData = this.actor.system;
-    const updateData = item.system.skills.reduce((updateData, skill) => {
-      const skillAdjustment = actorData.skills[skill].value + adj;
-      const skillValue = Math.max(Math.min(skillAdjustment, 5), 0);
-      return { ...updateData, [`system.skills.${skill}.value`]: skillValue };
-    }, {});
+    const updateData = item.system.skills.reduce(
+      (updateData: AlphaMap, skill: string) => {
+        const skillAdjustment = actorData.skills[skill].value + adj;
+        const skillValue = Math.max(Math.min(skillAdjustment, 5), 0);
+        return { ...updateData, [`system.skills.${skill}.value`]: skillValue };
+      },
+      {},
+    );
 
     await this.actor.update(updateData);
   }
@@ -553,10 +654,10 @@ export default class ActorSheetSS2e extends ActorSheet {
     // Go through all the advantages on the background and find the matching
     // Advantage Item and add it to the actor.
     for (const bAdvantage of backgroundData.advantages) {
-      const gameAdvantage = game.items.find(
+      const gameAdvantage = game.items?.find(
         (gItem) => gItem.name === bAdvantage,
       );
-      const packAdvantages =game.svnsea2e.packAdv;
+      const packAdvantages = game.svnsea2e.packAdv;
       const packAdvantage = packAdvantages.find(
         (pa) => pa.name.toLowerCase() === bAdvantage.toLowerCase(),
       );
@@ -564,7 +665,7 @@ export default class ActorSheetSS2e extends ActorSheet {
 
       // If no source advantage was found, send the user an alert.
       if (!assignedAdvantage) {
-        ui.notifications.error(
+        ui.notifications?.error(
           game.i18n.format('SVNSEA2E.ItemDoesntExist', {
             name: bAdvantage,
           }),
@@ -578,7 +679,7 @@ export default class ActorSheetSS2e extends ActorSheet {
 
       // Only Sorcery items can be duplicated, if it is invalid, send the user an alert.
       if (assignedAdvantage.type !== 'sorcery' && actorHas) {
-        ui.notifications.error(
+        ui.notifications?.error(
           game.i18n.format('SVNSEA2E.ItemExists', {
             type: assignedAdvantage.type,
             name: assignedAdvantage.name,

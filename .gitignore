@@ -6,3 +6,10 @@
 node_modules/
 npm-debug.log
 coverage
+
+# Build data
+dist/
+stats.html
+
+# Ignore the developer's Foundry config.
+foundryconfig.json
