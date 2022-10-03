@@ -1,12 +1,21 @@
-import { getItems, skillsToSheetData } from '../../helpers.js';
-import { ActorType, SvnseaActorSheetData } from '../types.js';
+import { getItems } from '../../helpers.js';
+import { CharacterTraits, LabeledBoundedValue } from '../types.js';
 import SS2ActorSheet from '../sheetBase';
+import {
+  getActorSheetBase,
+  getActorSheetDetails,
+  prepareSelectedLanguages,
+  skillsToSheetData,
+  traitsToSheetData,
+} from '../actorHelpers';
+import { SS2PlayerCharacterActor } from './SS2PlayerCharacterActor';
+import { registerLanguageSelector } from '../sheetHelpers';
 
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @ext'../../dice.js't}
  */
-export class SS2PlayerCharacterActorSheet extends SS2ActorSheet<ActorType.PlayerCharacter> {
+export class SS2PlayerCharacterActorSheet extends SS2ActorSheet {
   /** @override */
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
@@ -22,43 +31,54 @@ export class SS2PlayerCharacterActorSheet extends SS2ActorSheet<ActorType.Player
     });
   }
 
-  /**
-   * Organize and classify Items for Character sheets. Mutate the `sheetData`
-   * to get used by the templates.
-   *
-   * @param data Original sheet data.
-   * @param sheetData Mutated sheet data.
-   *
-   * @return {undefined}
-   */
-  prepareSheetData(
-    data: SvnseaActorSheetData<ActorType.PlayerCharacter>,
-    sheetData: SvnseaActorSheetData<ActorType.PlayerCharacter>,
-  ): void {
-    // Assign and return
-    sheetData.skills = skillsToSheetData(data.document.system, CONFIG);
-    sheetData.advantages = getItems(data, 'advantage');
-    sheetData.backgrounds = getItems(data, 'background');
-    sheetData.sorcery = getItems(data, 'sorcery');
-    sheetData.secretsocieties = getItems(data, 'secretsociety');
-    sheetData.stories = getItems(data, 'story');
-    sheetData.duelstyles = getItems(data, 'duelstyle');
-    sheetData.artifacts = getItems(data, 'artifact');
-    sheetData.virtues = getItems(data, 'virtue');
-    sheetData.hubriss = getItems(data, 'hubris');
+  override getData(): any {
+    const actorData = this.actor.system;
+
+    const skills: LabeledBoundedValue[] = skillsToSheetData(actorData.skills);
+    const traits = traitsToSheetData<CharacterTraits>(actorData.traits);
+
+    return {
+      ...super.getData(),
+
+      ...getActorSheetBase(this.actor),
+      ...getActorSheetDetails(this.actor),
+
+      // Player specific things
+      wealth: actorData.wealth,
+      heropts: actorData.heropts,
+      corruptionpts: actorData.corruptionpts,
+      redemption: actorData.redemption,
+      equipment: actorData.equipment,
+
+      // Player sheets have skills and languages.
+      hasSkills: true,
+      hasLanguages: true,
+      selectedlangs: prepareSelectedLanguages(actorData.languages),
+
+      skills,
+      traits,
+
+      advantages: getItems(this.actor, 'advantage'),
+      backgrounds: getItems(this.actor, 'background'),
+      sorcery: getItems(this.actor, 'sorcery'),
+      secretsocieties: getItems(this.actor, 'secretsociety'),
+      stories: getItems(this.actor, 'story'),
+      duelstyles: getItems(this.actor, 'duelstyle'),
+      artifacts: getItems(this.actor, 'artifact'),
+      virtues: getItems(this.actor, 'virtue'),
+      hubriss: getItems(this.actor, 'hubris'),
+    };
   }
 
-  // _prepareCharacterItems(data, sheetData) {
-  //   // Assign and return
-  //   sheetData.skills = skillsToSheetData(data.document.system, CONFIG);
-  //   sheetData.advantages = getItems(data, 'advantage');
-  //   sheetData.backgrounds = getItems(data, 'background');
-  //   sheetData.sorcery = getItems(data, 'sorcery');
-  //   sheetData.secretsocieties = getItems(data, 'secretsociety');
-  //   sheetData.stories = getItems(data, 'story');
-  //   sheetData.duelstyles = getItems(data, 'duelstyle');
-  //   sheetData.artifacts = getItems(data, 'artifact');
-  //   sheetData.virtues = getItems(data, 'virtue');
-  //   sheetData.hubriss = getItems(data, 'hubris');
-  // }
+  override activateListeners(html: JQuery) {
+    super.activateListeners(html);
+
+    // Handle rollable abilities.
+    html.find('.rollable').on('click', this._onHeroRoll.bind(this));
+    registerLanguageSelector(this.actor, html);
+  }
+}
+
+export interface SS2PlayerCharacterActorSheet {
+  get actor(): SS2PlayerCharacterActor;
 }

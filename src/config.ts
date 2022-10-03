@@ -253,7 +253,7 @@ export const SVNSEA_CONFIG: { [key: string]: any } = {
   nations,
   natTypes,
   languages,
-  traits,
+  traits: { ...traits, ...vtraits },
   skills,
   storyStatuses,
   sorceryTypes,
@@ -342,3 +342,10 @@ export const SVNSEA_CONFIG: { [key: string]: any } = {
     ],
   },
 };
+
+export function getConfig(section: string, key: string) {
+  const sectionObj = CONFIG.svnsea2e[section];
+  const keyObj = sectionObj[key];
+
+  return keyObj;
+}

@@ -1,11 +1,22 @@
-import { getItems } from '../../helpers.js';
-import { ActorType, SvnseaActorSheetData } from '../types';
 import SS2ActorSheet from '../sheetBase';
+import { SS2VillainActor } from './SS2VillainActor';
+import { getItems } from '../../helpers';
+import {
+  registerLanguageSelector,
+  registerVillainRollables,
+} from '../sheetHelpers';
+import {
+  getActorSheetBase,
+  getActorSheetDetails,
+  prepareSelectedLanguages,
+  traitsToSheetData,
+} from '../actorHelpers';
+import { CharacterTraits, VillainTraits } from '../types';
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @ext'../../dice.js't}
  */
-export class SS2VillainActorSheet extends SS2ActorSheet<ActorType.Villain> {
+export class SS2VillainActorSheet extends SS2ActorSheet {
   /** @override */
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
@@ -21,27 +32,40 @@ export class SS2VillainActorSheet extends SS2ActorSheet<ActorType.Villain> {
     });
   }
 
-  /**
-   * Organize and classify Items for Character sheets. Mutate the `sheetData`
-   * to get used by the templates.
-   *
-   * @param data Original sheet data.
-   * @param sheetData Mutated sheet data.
-   *
-   * @return {undefined}
-   */
-  prepareSheetData(
-    data: SvnseaActorSheetData<ActorType.PlayerCharacter>,
-    sheetData: SvnseaActorSheetData<ActorType.PlayerCharacter>,
-  ): void {
-    // Assign and return
-    sheetData.villainy = data.document.system.villainy;
-    sheetData.advantages = getItems(data, 'advantage');
-    sheetData.artifacts = getItems(data, 'artifact');
-    sheetData.sorcery = getItems(data, 'sorcery');
-    sheetData.schemes = getItems(data, 'scheme');
-    sheetData.virtues = getItems(data, 'virtue');
-    sheetData.hubriss = getItems(data, 'hubris');
-    sheetData.monsterqualities = getItems(data, 'monsterquality');
+  override getData(): any {
+    const actorData = this.actor.system;
+    const traits = traitsToSheetData<VillainTraits>(actorData.traits);
+    return {
+      ...super.getData(),
+
+      ...getActorSheetBase(this.actor),
+      ...getActorSheetDetails(this.actor),
+
+      hasLanguages: true,
+      selectedlangs: prepareSelectedLanguages(actorData.languages),
+
+      traits,
+      villainy: actorData.villainy,
+      advantages: getItems(this.actor, 'advantage'),
+      artifacts: getItems(this.actor, 'artifact'),
+      sorcery: getItems(this.actor, 'sorcery'),
+      schemes: getItems(this.actor, 'scheme'),
+      virtues: getItems(this.actor, 'virtue'),
+      hubriss: getItems(this.actor, 'hubris'),
+      monsterqualities: getItems(this.actor, 'monsterquality'),
+    };
   }
+
+  override activateListeners(html: JQuery) {
+    super.activateListeners(html);
+
+    // Handle rollable abilities.
+    // html.find('.rollable').on('click', this._onVillainRoll.bind(this));
+    registerVillainRollables(this.actor, html);
+    registerLanguageSelector(this.actor, html);
+  }
+}
+
+export interface SS2VillainActorSheet {
+  get actor(): SS2VillainActor;
 }

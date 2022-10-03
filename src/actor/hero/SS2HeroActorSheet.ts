@@ -1,10 +1,17 @@
 import { getItems } from '../../helpers.js';
 import SS2ActorSheet from '../sheetBase';
-import { ActorType, LabeledBoundedValue } from '../types';
+import { CharacterTraits, LabeledBoundedValue } from '../types';
 import { SS2ActorSheetDataBase } from '../actorDataProperties.js';
 import { SS2HeroActor } from './SS2HeroActor';
-import { skillsToSheetData, traitsToSheetData } from '../actorHelpers.js';
+import {
+  getActorSheetBase,
+  getActorSheetDetails,
+  prepareSelectedLanguages,
+  skillsToSheetData,
+  traitsToSheetData,
+} from '../actorHelpers.js';
 import { SS2ActorSheetData } from '../actorDataSheet.js';
+import { registerLanguageSelector } from '../sheetHelpers';
 
 /**
  * Extend the basic ActorSheet with some very simple modifications
@@ -26,104 +33,49 @@ export class SS2HeroActorSheet extends SS2ActorSheet {
     });
   }
 
-  getSheetDataBase(): SS2ActorSheetDataBase {
-    return {
-      ...super.getSheetDataBase(),
-      isHero: true,
-      hasLanguages: this.actor.system.languages.length > 0,
-    };
-  }
-
   override getData(): any {
-    const data = this.actor as SS2HeroActor;
-    const actorData = data.system;
+    const actorData = this.actor.system;
 
-    // this.actor.system.
-
-    const skills: LabeledBoundedValue[] = skillsToSheetData(
-      this.actor.system.skills,
-    );
-
-    const traits = traitsToSheetData(this.actor.system.traits, CONFIG.svnsea2e);
+    const skills: LabeledBoundedValue[] = skillsToSheetData(actorData.skills);
+    const traits = traitsToSheetData<CharacterTraits>(actorData.traits);
 
     const sheetData: SS2ActorSheetData = {
-      ...this.getSheetDataBase(),
+      ...super.getData(),
 
-      initiative: actorData.initiative,
-      wounds: actorData.wounds,
-      dwounds: data.system.dwounds,
+      ...getActorSheetBase(this.actor),
+      ...getActorSheetDetails(this.actor),
 
-      // Details:
-      nation: actorData.nation,
-      religion: actorData.religion,
-      age: actorData.age,
-      reputation: actorData.reputation,
-      languages: actorData.languages,
-      arcana: actorData.arcana,
-      concept: actorData.concept,
+      // Hero sheets have skills and languages.
+      hasSkills: true,
+      hasLanguages: true,
+      selectedlangs: prepareSelectedLanguages(actorData.languages),
+
       skills,
       traits,
 
-      advantages: getItems(data, 'advantage'),
-      backgrounds: getItems(data, 'background'),
-      sorcery: getItems(data, 'sorcery'),
-      secretsocieties: getItems(data, 'secretsociety'),
-      stories: getItems(data, 'story'),
-      duelstyles: getItems(data, 'duelstyle'),
-      artifacts: getItems(data, 'artifact'),
-      virtues: getItems(data, 'virtue'),
-      hubriss: getItems(data, 'hubris'),
+      advantages: getItems(this.actor, 'advantage'),
+      backgrounds: getItems(this.actor, 'background'),
+      sorcery: getItems(this.actor, 'sorcery'),
+      secretsocieties: getItems(this.actor, 'secretsociety'),
+      stories: getItems(this.actor, 'story'),
+      duelstyles: getItems(this.actor, 'duelstyle'),
+      artifacts: getItems(this.actor, 'artifact'),
+      virtues: getItems(this.actor, 'virtue'),
+      hubriss: getItems(this.actor, 'hubris'),
     };
-
-    console.log(sheetData);
 
     return sheetData;
   }
-  // override getData() {
-  //   const baseSheetData = super.getData();
-  //   const data = this.actor as SS2HeroActor;
-  //   const actorData = data.system;
-  //
-  //   // const sheetData =
-  //   //
-  //   // const sheetData {
-  //
-  //   // };
-  //
-  //   const sheetData2: SS2ActorSheetData<ActorType.Hero> = {
-  //     ...baseSheetData,
-  //
-  //     // Actor Base
-  //     initiative: actorData.initiative,
-  //     wounds: actorData.wounds,
-  //     dwounds: data.system.dwounds,
-  //
-  //     // Details:
-  //     nation: actorData.nation,
-  //     religion: actorData.religion,
-  //     age: actorData.age,
-  //     reputation: actorData.reputation,
-  //     languages: actorData.languages,
-  //     arcana: actorData.arcana,
-  //     concept: actorData.concept,
-  //
-  //     // features
-  //     traits: {},
-  //
-  //     skills: skillsToSheetData(this.actor.system, CONFIG),
-  //     advantages: getItems(data, 'advantage'),
-  //     backgrounds: getItems(data, 'background'),
-  //     sorcery: getItems(data, 'sorcery'),
-  //     secretsocieties: getItems(data, 'secretsociety'),
-  //     stories: getItems(data, 'story'),
-  //     duelstyles: getItems(data, 'duelstyle'),
-  //     artifacts: getItems(data, 'artifact'),
-  //     virtues: getItems(data, 'virtue'),
-  //     hubriss: getItems(data, 'hubris'),
-  //   };
-  //
-  //   // Assign and return
-  //
-  //   return sheetData2;
-  // }
+
+  override activateListeners(html: JQuery) {
+    super.activateListeners(html);
+
+    // Handle rollable abilities.
+    html.find('.rollable').on('click', this._onHeroRoll.bind(this));
+    registerLanguageSelector(this.actor, html);
+  }
+}
+
+export interface SS2HeroActorSheet {
+  get actor(): SS2HeroActor;
 }

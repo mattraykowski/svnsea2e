@@ -5,6 +5,7 @@
 import {
   ActorSkills,
   ActorTraits,
+  ActorType,
   BoundedTrait,
   BoundedValue,
   SS2ActorDataDefinitions,
@@ -39,11 +40,10 @@ export class SS2Actor extends Actor {
   /**
    *
    */
-  _prepareTraits(traits: BoundedTrait): BoundedTrait {
+  _prepareTraits(traits: BoundedTrait): void {
     for (const trait of Object.values(traits)) {
       trait.value = this._boundBoundedValue(trait);
     }
-    return traits;
   }
 
   /**

@@ -6,6 +6,10 @@ export interface SS2BruteDataSourceData {
     strength: BoundedValue;
   };
   wounds: BoundedValue;
+  ability: {
+    name: string;
+    label: string;
+  };
 }
 
 export interface SS2BruteDataSource {

@@ -2,10 +2,19 @@ import {
   SS2ActorDataSourceBase,
   SS2ActorDataSourceVTraits,
 } from '../actorDataSource';
-import { ActorTraits, ActorType, BoundedValue, VillainTraits } from '../types';
+import { ActorType, ArcanaDetails, BoundedValue } from '../types';
 
-interface SS2MonsterDataSourceFeatures {
+export interface SS2MonsterDataSourceFeatures {
   fear: BoundedValue;
+
+  // TODO: These are on the sheet but not in template.json
+  arcana: {
+    virtue: ArcanaDetails;
+    hubris: ArcanaDetails;
+  };
+  concept: string;
+  religion: string;
+  reputation: string;
 }
 
 export type SS2MonsterDataSourceData = SS2ActorDataSourceBase &

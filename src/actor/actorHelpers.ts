@@ -2,6 +2,15 @@ import { ActorSkills, ActorTraits, LabeledBoundedValue } from './types';
 import { SVNSEA_CONFIG } from '../config';
 import { SS2Actor } from './actorBase';
 import { SheetDataOptions, SheetHelpers } from './actorDataSheet';
+import { SS2HeroActor } from './hero/SS2HeroActor';
+import { SS2PlayerCharacterActor } from './player_character/SS2PlayerCharacterActor';
+import { SS2VillainActor } from './villain/SS2VillainActor';
+import {
+  SS2ActorDataSourceBase,
+  SS2ActorDataSourceDetails,
+} from './actorDataSource';
+import { SS2MonsterActor } from './monster/SS2MonsterActor';
+import { SS2ShipActor } from './ship/SS2ShipActor';
 
 export const skillsToSheetData = (skills: ActorSkills): LabeledBoundedValue[] =>
   Object.entries(skills)
@@ -12,49 +21,53 @@ export const skillsToSheetData = (skills: ActorSkills): LabeledBoundedValue[] =>
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-export const traitsToSheetData = (traits: ActorTraits): LabeledBoundedValue[] =>
-  Object.entries(traits)
+export function traitsToSheetData<T>(traits: T): LabeledBoundedValue[] {
+  return Object.entries(traits)
     .map(([s, trait]) => ({
       ...trait,
       name: s,
       label: CONFIG.svnsea2e.traits[s],
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
 
-const DEFAULT_SHEET_OPTIONS = {
-  isCorrupt: false,
-  isPlayerCharacter: false,
-  isHero: false,
-  isVillain: false,
-  isMonster: false,
-  isNotBrute: true,
-  hasSkills: false,
-  hasLanguages: false,
-};
-export const generateSheetHelpers = (
-  options: Partial<SheetHelpers> = {},
-): SheetHelpers => {
-  return { ...DEFAULT_SHEET_OPTIONS, ...options };
-};
+export const prepareSelectedLanguages = (
+  languages: string[],
+): { [index: string]: string } =>
+  languages.reduce(
+    (languages, language) => ({
+      ...languages,
+      [language]: CONFIG.svnsea2e.languages[language],
+    }),
+    {},
+  );
 
-export const generateSheetDataOptions = (
-  actor: SS2Actor,
-  sheetOptions: ActorSheet.Options,
-  editable: boolean,
-  options: Partial<SheetDataOptions> = {},
-): SheetDataOptions => {
-  const { isOwner: owner, limited } = actor;
-  const sheetDataOptions: SheetDataOptions = {
-    owner,
-    limited,
-    cssClass: owner ? 'editable' : 'locked',
-    config: CONFIG.svnsea2e,
-    dtypes: ['String', 'Number', 'Boolean'],
-    name: actor.name,
-    img: actor.img,
-    editable,
-    options: sheetOptions,
+export const getActorSheetDetails = (
+  actor: SS2HeroActor | SS2PlayerCharacterActor | SS2VillainActor,
+): SS2ActorDataSourceDetails => {
+  return {
+    // Details: (hero, player, villain)
+    nation: actor.system.nation,
+    religion: actor.system.religion,
+    age: actor.system.age,
+    reputation: actor.system.reputation,
+    languages: actor.system.languages,
+    arcana: actor.system.arcana,
+    concept: actor.system.concept,
   };
+};
 
-  return { ...sheetDataOptions, ...options };
+export const getActorSheetBase = (
+  actor:
+    | SS2HeroActor
+    | SS2MonsterActor
+    | SS2PlayerCharacterActor
+    | SS2ShipActor
+    | SS2VillainActor,
+): SS2ActorDataSourceBase => {
+  return {
+    initiative: actor.system.initiative,
+    wounds: actor.system.wounds,
+    dwounds: actor.system.dwounds,
+  };
 };

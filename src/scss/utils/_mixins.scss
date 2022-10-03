@@ -17,10 +17,8 @@
 
 @mixin paint-bottom-border {
   padding-bottom: 2px;
-  background: url(../../../public/imgs/paint_border.png);
-  background-repeat: no-repeat;
   background-size: 100% 6px;
-  background-position: left bottom;
+  background: url(../../../public/imgs/paint_border.png) no-repeat left bottom;
 }
 
 @mixin hover-highlight {

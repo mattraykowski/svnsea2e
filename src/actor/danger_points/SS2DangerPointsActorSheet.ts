@@ -1,22 +1,14 @@
-import {
-  ActorType,
-  SvnseaActorDataPropertiesData,
-  SvnseaActorSheetData,
-} from '../types';
 import SS2ActorSheet from '../sheetBase';
+import { SS2DangerPointsActor } from './SS2DangerPointsActor';
 
-/**
- * Extend the basic ItemSheet with some very simple modifications
- * @extends {ItemSheet}
- */
-export class SS2DangerPointsActorSheet extends SS2ActorSheet<ActorType.DangerPoints> {
-  /** @override */
-  static get defaultOptions() {
+export class SS2DangerPointsActorSheet extends SS2ActorSheet {
+  static override get defaultOptions() {
     return mergeObject(super.defaultOptions, {
       classes: ['svnsea2e', 'sheet', 'actor'],
       template: 'systems/svnsea2e/templates/actors/dangerpts.html',
       tabs: [
         {
+          navSelector: '.sheet-tabs',
           contentSelector: '.sheet-body',
         },
       ],
@@ -25,21 +17,12 @@ export class SS2DangerPointsActorSheet extends SS2ActorSheet<ActorType.DangerPoi
     });
   }
 
-  /**
-   * Organize and classify Items for Character sheets. Mutate the `sheetData`
-   * to get used by the templates.
-   *
-   * @param data Original sheet data.
-   * @param sheetData Mutated sheet data.
-   *
-   * @return {undefined}
-   */
-  prepareSheetData(
-    data: SvnseaActorSheetData<ActorType.DangerPoints>,
-    sheetData: SvnseaActorSheetData<ActorType.DangerPoints>,
-  ): void {
-    const actorData: SvnseaActorDataPropertiesData = this.actor.system;
-    sheetData.points = actorData.points;
+  override getData(): any {
+    const actorData = this.actor.system;
+    return {
+      ...super.getData(),
+      points: actorData.points,
+    };
   }
 
   /**
@@ -77,4 +60,8 @@ export class SS2DangerPointsActorSheet extends SS2ActorSheet<ActorType.DangerPoi
       })
       .then(() => this.render(false));
   }
+}
+
+export interface SS2DangerPointsActorSheet {
+  get actor(): SS2DangerPointsActor;
 }

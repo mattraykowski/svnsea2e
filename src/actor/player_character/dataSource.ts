@@ -11,6 +11,7 @@ interface SS2PlayerCharacterDataSourceFeatures {
   vile: number;
   corruptionpts: number;
   redemption: string;
+  equipment: string;
 }
 
 export type SS2PlayerCharacterDataSourceData = SS2ActorDataSourceBase &

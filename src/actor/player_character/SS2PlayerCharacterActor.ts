@@ -11,7 +11,7 @@ export class SS2PlayerCharacterActor extends SS2Actor {
     const actorData = this.system;
 
     actorData.wounds = this._prepareWounds(actorData.wounds);
-    actorData.traits = this._prepareTraits(actorData.traits);
+    this._prepareTraits(actorData.traits);
     actorData.skills = this._prepareSkills(actorData.skills);
   }
 }

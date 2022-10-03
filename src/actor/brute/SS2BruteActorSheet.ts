@@ -1,17 +1,13 @@
-import {
-  ActorType,
-  SvnseaActorDataPropertiesData,
-  SvnseaActorSheetData,
-} from '../types';
 import SS2ActorSheet from '../sheetBase';
 import { SS2BruteActor } from './SS2BruteActor';
+import { traitsToSheetData } from '../actorHelpers';
+import { BoundedValue, VillainTraits } from '../types';
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @ext'../../dice.js't}
  */
 export class SS2BruteActorSheet extends SS2ActorSheet {
-  /** @override */
-  static get defaultOptions() {
+  static override get defaultOptions() {
     return mergeObject(super.defaultOptions, {
       classes: ['svnsea2e', 'sheet', 'actor', 'brute'],
       template: 'systems/svnsea2e/templates/actors/brute.html',
@@ -24,19 +20,20 @@ export class SS2BruteActorSheet extends SS2ActorSheet {
     });
   }
 
-  /**
-   * Organize and classify Items for Character sheets. Mutate the `sheetData`
-   * to get used by the templates.
-   *
-   * @param data Original sheet data.
-   * @param sheetData Mutated sheet data.
-   *
-   * @return {undefined}
-   */
-  prepareSheetData(data: any, sheetData: any): void {
+  override getData(): any {
     const actorData = this.actor.system;
-    sheetData.ability = actorData.ability;
+    return {
+      ...super.getData(),
+      wounds: actorData.wounds,
+      ability: actorData.ability,
+      // Brutes only have strength, not the trait features.
+      traits: traitsToSheetData<BruteTraits>(actorData.traits),
+    };
   }
+}
+
+interface BruteTraits {
+  strength: BoundedValue;
 }
 
 export interface SS2BruteActorSheet {

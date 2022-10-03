@@ -2,15 +2,19 @@ import LanguageSelector from '../apps/language-selector.js';
 import { updateInitiative } from '../combat.js';
 import { roll } from '../roll/roll.js';
 import { isValidGlamorIsles } from '../helpers.js';
-import { SheetTrait, SheetTraits } from './types';
+import { ActorType, BoundedValue } from './types';
 import { SS2Actor } from '../actor';
-import { AlphaMap, StringMap } from '../global';
+import { AlphaMap } from '../global';
 import { EventDataSet } from '../config';
 import {
   SS2ActorSheetData,
   SS2ActorSheetDataBase,
 } from './actorDataProperties';
-import { generateSheetDataOptions, generateSheetHelpers } from './actorHelpers';
+import { SS2HeroActor } from './hero/SS2HeroActor';
+import { SS2ActorDataSourceDetails } from './actorDataSource';
+import { SS2PlayerCharacterActorSheet } from './player_character/SS2PlayerCharacterActorSheet';
+import { SS2PlayerCharacterActor } from './player_character/SS2PlayerCharacterActor.js';
+import { SS2VillainActor } from './villain/SS2VillainActor';
 
 /**
  * Extend the basic ActorSheet class to do all the 7th Sea things!
@@ -28,160 +32,67 @@ export default class SS2ActorSheet extends ActorSheet<
     });
   }
 
-  getSheetDataBase(): SS2ActorSheetDataBase {
-    const { isOwner: owner, limited } = this.actor;
-    const sheetBase: SS2ActorSheetDataBase = {
-      ...generateSheetDataOptions(this.actor, this.options, this.isEditable),
-      ...generateSheetHelpers({ isCorrupt: true }),
-    };
-    return sheetBase;
-  }
-
-  /* -------------------------------------------- */
-
-  // /** @override */
-  // override getData(): SS2ActorSheetData<T> {
-  //   const baseData = super.getData() as ActorSheet.Data;
-  //   // console.log(this.actor.items);
-  //   const actorData = this.actor.system;
-  //   const { isOwner: owner, limited } = this.actor;
-  //   //
-  //   // console.log('baseData', baseData.data);
-  //   //
-  //   // const actorSheetData: any = {
-  //   //   ...baseData,
-  //   // };
-  //
-  //   const sheetData: SS2ActorSheetData<T> = {
-  //     ...baseData,
-  //     sheet: this.buildSheetData(),
-  //
-  //     // cssClass: owner ? 'editable' : 'locked',
-  //     // options: this.options,
-  //     // editable: this.isEditable,
-  //     // actor: baseData.actor,
-  //     // items: baseData.items,
-  //     sheet: {
-  //       owner,
-  //       limited,
-  //
-  //       config: CONFIG.svnsea2e,
-  //       dtypes: ['String', 'Number', 'Boolean'],
-  //       name: this.actor.name,
-  //       img: this.actor.img,
-  //
-  //       // initiative: actorData.initiative,
-  //
-  //       // These will be overriden by underlying implementations.
-  //       isCorrupt: false,
-  //       isPlayerCharacter: false,
-  //       isHero: false,
-  //       isVillain: false,
-  //       isMonster: false,
-  //       isNotBrute: true,
-  //       hasSkills: false,
-  //       hasLanguages: false,
-  //       traits: this._prepareTraits(this.actor),
-  //     },
-  //   };
-  //
-  //   // console.log('sheet data traits', sheetData.sheet.traits);
-  //   return sheetData;
-  //
-  //   // const sheetData = {
-  //   //   ...sheetDataOrigin,
-  //
-  //   // isCorrupt: actorData.corruptionpts > 0,
-  //   // isPlayerCharacter: this.actor.type === ActorType.PlayerCharacter,
-  //   // isHero: actor.type === ActorType.Hero,
-  //   // isVillain: actor.type === ActorType.Villain,
-  //   // isMonster: actor.type === ActorType.Monster,
-  //   // isNotBrute: actor.type !== ActorType.Brute,
-  //   // hasSkills: typeof actorData.skills !== 'undefined',
-  //   // hasLanguages: typeof actorData.languages !== 'undefined',
-  //
-  //   // Core Actor data:
-  //
-  //   // age: actorData.age,
-  //   // nation: actorData.nation,
-  //   // wealth: actorData.wealth,
-  //   // heropts: actorData.heropts,
-  //   // corruptionpts: actorData.corruptionpts,
-  //   // wounds: actorData.wounds,
-  //   // dwounds: actorData.dwounds,
-  //   // traits: this._prepareTraits(actor),
-  //   // selectedlangs: this._prepareLanguages(actor),
-  //   //
-  //   // // Concept tab.
-  //   // religion: actorData.religion,
-  //   // reputation: actorData.reputation,
-  //   // concept: actorData.concept,
-  //   // arcana: actorData.arcana,
-  //   //
-  //   // // Inventory Tab
-  //   // equipment: actorData.equipment,
-  //   //
-  //   // // Fate Tab
-  //   // redemption: actorData.redemption,
-  //   // };
-  //
-  //   // this.prepareSheetData(data, sheetData);
-  //   //
-  //   // // Prepare items.
-  //   // if (actor.type === 'playercharacter') {
-  //   //   // this._prepareCharacterItems(data, sheetData);
-  //   //   // } else if (actor.type === 'hero') {
-  //   //   //   this._prepareHeroItems(data, sheetData);
-  //   //   // } else if (actor.type === 'villain') {
-  //   //   //   this._prepareVillainItems(data, sheetData);
-  //   //   // } else if (actor.type === 'monster') {
-  //   //   //   this._prepareMonsterItems(data, sheetData);
-  //   //   // } else if (actor.type === 'ship') {
-  //   //   //   this._prepareShipItems(data, sheetData);
-  //   //   //   this._processFlags(actorData, actor.flags, sheetData);
-  //   //   // } else if (actor.type === 'dangerpts') {
-  //   //   //   sheetData.points = actorData.points;
-  //   // } else if (actor.type === 'brute') {
-  //   //   sheetData.ability = actorData.ability;
-  //   // }
-  //   return sheetData;
-  // }
-
-  /* -------------------------------------------- */
-
-  // _prepareButtonTitles(data) {
-  //   for (const item of Object.values(data)) {
-  //     item.editlabel = game.i18n.format('SVNSEA2E.EditLabel', {
-  //       label: data.name,
-  //     });
-  //     item.deletelabel = game.i18n.format('SVNSEA2E.DeleteLabel', {
-  //       label: data.name,
-  //     });
-  //   }
-  // }
-
   /* -------------------------------------------- */
 
   /**
-   * Returns a sheet-friendly list of traits with the localized label.
+   * Where getData data comes from:
+   * base:
+   *   owner
+   *   limited
+   *   options
+   *   editable
+   *   cssClass
    *
-   * @param actor
-   * @returns {(*&{name: *, label: *})[]|*[]}
-   * @private
+   *   isCorrupt
+   *   isPlayerCharacter
+   *   isHero
+   *
    */
-  _prepareTraits(actor: SS2Actor): SheetTraits {
-    return !['ship', 'dangerpts'].includes(actor.type)
-      ? Object.entries(actor.system.traits).map(([t, trait]) => {
-          const sheetTrait: SheetTrait = {
-            ...trait,
-            name: t,
-            label: CONFIG.svnsea2e.traits[t],
-          };
 
-          console.log(CONFIG.svnsea2e.traits);
-          return sheetTrait;
-        })
-      : [];
+  override getData(): SS2ActorSheetDataBase {
+    const superData = super.getData();
+    const mergedSheet = mergeObject(superData);
+    const actorData = this.actor.system;
+
+    // Sheet helpers.
+    // isCorrupt
+    mergedSheet.isPlayerCharacter =
+      this.actor.type === ActorType.PlayerCharacter;
+    mergedSheet.isHero = this.actor.type === ActorType.Hero;
+    mergedSheet.isVillain = this.actor.type === ActorType.Villain;
+    mergedSheet.isMonster = this.actor.type === ActorType.Monster;
+    mergedSheet.isNotBrute = this.actor.type !== ActorType.Brute;
+    // hasSkills
+    // hasLanguages
+    mergedSheet.config = CONFIG.svnsea2e;
+    mergedSheet.dtypes = ['String', 'Number', 'Boolean'];
+    mergedSheet.name = this.actor.name;
+    mergedSheet.img = this.actor.img;
+
+    // Base Actor (hero, monster, pc, ship, villain)
+    // mergedSheet.initiative = actorData.initiative;
+    // mergedSheet.wounds = actorData.wounds;
+    // mergedSheet.dwounds = actorData.dwounds;
+    //
+    // // Details: (hero, player, villain)
+    // mergedSheet.nation = actorData.nation;
+    // mergedSheet.religion = actorData.religion;
+    // mergedSheet.age = actorData.age;
+    // mergedSheet.reputation = actorData.reputation;
+    // mergedSheet.languages = actorData.languages;
+    // mergedSheet.arcana = actorData.arcana;
+    // mergedSheet.concept = actorData.concept;
+    //
+    // // Others
+    // mergedSheet.wealth = actorData.wealth; // on player and ship
+    // mergedSheet.heropts = actorData.heropts; // on player
+    // mergedSheet.corruptionpts = actorData.corruptionpts; // on player
+    // mergedSheet.traits = actorData.traits; // Gotta figure out
+    // mergedSheet.selectedlangs = actorData.selectedlangs; // correlates to details interface
+    // mergedSheet.equipment = actorData.equipment; // in no types officially?
+    // mergedSheet.redemption = actorData.redemption; // player and villain
+
+    return mergedSheet;
   }
 
   /* -------------------------------------------- */
@@ -219,16 +130,26 @@ export default class SS2ActorSheet extends ActorSheet<
       .on('click', (event) => this._onItemSummary(event));
 
     // Rollable abilities.
-    if (this.actor.type === 'playercharacter' || this.actor.type === 'hero') {
-      html.find('.rollable').on('click', this._onHeroRoll.bind(this));
-    } else if (this.actor.type === 'villain' || this.actor.type === 'monster') {
-      html.find('.rollable').on('click', this._onVillainRoll.bind(this));
-    }
+    // if (
+    //   this.actor.type === ActorType.PlayerCharacter ||
+    //   this.actor.type === ActorType.Hero
+    // ) {
+    //   html.find('.rollable').on('click', this._onHeroRoll.bind(this));
+    // } else if (
+    //   this.actor.type === ActorType.Villain ||
+    //   this.actor.type === ActorType.Monster
+    // ) {
+    //   html.find('.rollable').on('click', this._onVillainRoll.bind(this));
+    // }
 
+    // corrupt for pc
+    // fear for monster
+    // skills for pc and hero
+    // traits for hero, pc, villain
     html
       .find('.fillable.fa-circle')
       .on('click', (event) => this._processCircle(event));
-    if (this.actor.type === 'brute') {
+    if (this.actor.type === ActorType.Brute) {
       html
         .find('.fillable.fa-heart')
         .on('click', (event) => this._processBruteWounds(event));
@@ -254,7 +175,6 @@ export default class SS2ActorSheet extends ActorSheet<
   _onAddInitiative(event: JQuery.ClickEvent) {
     event.preventDefault();
     const initiative = (this.actor.system.initiative || 0) + 1;
-    console.log('new initiative', initiative);
     updateInitiative(this.actor.id, initiative);
   }
 
@@ -266,25 +186,6 @@ export default class SS2ActorSheet extends ActorSheet<
 
   /* -------------------------------------------- */
 
-  /**
-   * Prepare the Languages that the Actor has selected for use with the LanguageSelector application
-   * @param {Object} actor       The actor
-   * @private
-   */
-  _prepareLanguages(actor: SS2Actor) {
-    // Languages only apply to PCs, heroes, or villains.
-    if (!['playercharacter', 'hero', 'villain'].includes(actor.type))
-      return undefined;
-
-    return actor.system.languages.reduce(
-      (languages, language) => ({
-        ...languages,
-        [language]: CONFIG.svnsea2e.languages[language],
-      }),
-      {},
-    );
-  }
-
   /* -------------------------------------------- */
 
   /**
@@ -293,8 +194,17 @@ export default class SS2ActorSheet extends ActorSheet<
    * @private
    */
   async _processCircle(event: JQuery.ClickEvent) {
-    const actor = this.document;
+    if (
+      !(
+        this.actor instanceof SS2PlayerCharacterActor ||
+        this.actor instanceof SS2VillainActor
+      )
+    )
+      return;
+    const actor = this.actor;
     const actorData = actor.system;
+    const skills: { [s: string]: BoundedValue } = actorData.skills;
+    const traits: { [s: string]: BoundedValue } = actorData.traits;
     const dataSet: EventDataSet = event.target.dataset;
 
     let updateObj: AlphaMap = {};
@@ -304,7 +214,7 @@ export default class SS2ActorSheet extends ActorSheet<
     if (dataSetValue === 1) {
       switch (dataSet.type) {
         case 'skill':
-          tval = actorData.skills[dataSet.key].value;
+          tval = skills[dataSet.key].value;
           break;
         case 'trait':
           if (dataSet.key === 'influence') {
@@ -766,15 +676,25 @@ export default class SS2ActorSheet extends ActorSheet<
    * @param {Event} event   The originating click event
    * @private
    */
-  async _onHeroRoll(event) {
+  async _onHeroRoll(event: JQuery.ClickEvent) {
     event.preventDefault();
+    if (
+      !(
+        this.actor instanceof SS2PlayerCharacterActor ||
+        this.actor instanceof SS2HeroActor
+      )
+    )
+      return;
     const element = event.currentTarget;
     const dataset = element.dataset;
     const actor = this.actor;
     const data = this.actor.system;
+    // Grab the skills and traits as indexables.
+    const skills = data.skills as { [s: string]: BoundedValue };
+    const traits = data.traits as { [s: string]: BoundedValue };
 
-    let skillValue = data.skills[dataset.label]['value'];
-    let rolldata = {
+    let skillValue = skills[dataset.label]['value'];
+    const rolldata = {
       threshold: 10,
       explode: false,
       reroll: false,
@@ -789,16 +709,17 @@ export default class SS2ActorSheet extends ActorSheet<
     if (skillValue === 5 || data.dwounds.value === 3)
       rolldata['explode'] = true;
 
-    const traits = {};
+    const traitsDropdown: { [t: string]: number } = {};
     for (const trait of Object.keys(data.traits)) {
-      traits[CONFIG.svnsea2e.traits[trait]] = data.traits[trait].value;
+      console.log('for trait', CONFIG.svnsea2e.traits[trait]);
+      traitsDropdown[CONFIG.svnsea2e.traits[trait]] = traits[trait].value;
     }
 
     const initialBonusDice = data.dwounds.value >= 1 ? 1 : 0;
 
     // Render modal dialog
     const template = 'systems/svnsea2e/templates/chats/skill-roll-dialog.html';
-    const dialogData = { data, traits, initialBonusDice };
+    const dialogData = { data, traits: traitsDropdown, initialBonusDice };
 
     const html = await renderTemplate(template, dialogData);
 
@@ -815,85 +736,21 @@ export default class SS2ActorSheet extends ActorSheet<
             roll: {
               icon: '<img src="systems/svnsea2e/icons/d10.svg" class="d10">',
               label: game.i18n.localize('SVNSEA2E.Roll'),
-              callback: (html) =>
-                roll({
+              callback: (html) => {
+                // @ts-ignore
+                const form = html[0].querySelector('form');
+                return roll({
                   rolldata,
                   actor,
                   data,
-                  form: html[0].querySelector('form'),
+                  form,
                   template: 'systems/svnsea2e/templates/chats/roll-card.html',
                   title: game.i18n.format('SVNSEA2E.ApproachRollChatTitle', {
-                    trait:
-                      html[0].querySelector('form').trait[
-                        html[0].querySelector('form').trait.selectedIndex
-                      ].text,
+                    trait: form.trait[form.trait.selectedIndex].text,
                     skill: CONFIG.svnsea2e.skills[dataset.label],
                   }),
-                }),
-            },
-          },
-        },
-        {},
-      ).render(true);
-    });
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Handle clickable rolls.
-   * @param {Event} event   The originating click event
-   * @private
-   */
-  async _onVillainRoll(event) {
-    event.preventDefault();
-    const element = event.currentTarget;
-    const dataset = element.dataset;
-    const actor = this.actor;
-    const data = this.actor.system;
-
-    let rolldata = {
-      threshold: 10,
-      explode: false,
-      reroll: false,
-      skilldice: 0,
-    };
-
-    // Render modal dialog
-    const template = 'systems/svnsea2e/templates/chats/trait-roll-dialog.html';
-
-    const initialBonusDice = data.dwounds.value >= 1 ? 1 : 0;
-
-    const dialogData = {
-      data: data,
-      traitmax: data.traits[dataset.label]['value'],
-      initialBonusDice,
-    };
-
-    const html = await renderTemplate(template, dialogData);
-
-    // Create the Dialog window
-    const title = game.i18n.format('SVNSEA2E.TraitRollTitle', {
-      trait: CONFIG.svnsea2e.traits[dataset.label],
-    });
-    return new Promise(() => {
-      new Dialog(
-        {
-          title: title,
-          content: html,
-          buttons: {
-            roll: {
-              icon: '<img src="systems/svnsea2e/icons/d10.svg" class="d10">',
-              label: game.i18n.localize('SVNSEA2E.Roll'),
-              callback: (html) =>
-                roll({
-                  rolldata: rolldata,
-                  actor: actor,
-                  data: data,
-                  form: html[0].querySelector('form'),
-                  template: 'systems/svnsea2e/templates/chats/roll-card.html',
-                  title: title,
-                }),
+                });
+              },
             },
           },
         },

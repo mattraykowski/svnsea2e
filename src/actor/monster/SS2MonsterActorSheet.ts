@@ -1,11 +1,19 @@
 import { getItems } from '../../helpers.js';
-import { ActorType, SvnseaActorSheetData } from '../types';
+import { ActorType, SvnseaActorSheetData, VillainTraits } from '../types';
 import SS2ActorSheet from '../sheetBase';
+import { SS2MonsterActor } from './SS2MonsterActor';
+import { registerVillainRollables } from '../sheetHelpers';
+import {
+  getActorSheetBase,
+  getActorSheetDetails,
+  traitsToSheetData,
+} from '../actorHelpers';
+import { SS2MonsterSheetData } from './dataSheet';
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @ext'../../dice.js't}
  */
-export class SS2MonsterActorSheet extends SS2ActorSheet<ActorType.Monster> {
+export class SS2MonsterActorSheet extends SS2ActorSheet {
   /** @override */
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
@@ -21,20 +29,31 @@ export class SS2MonsterActorSheet extends SS2ActorSheet<ActorType.Monster> {
     });
   }
 
-  /**
-   * Organize and classify Items for Character sheets. Mutate the `sheetData`
-   * to get used by the templates.
-   *
-   * @param data Original sheet data.
-   * @param sheetData Mutated sheet data.
-   *
-   * @return {undefined}
-   */
-  prepareSheetData(
-    data: SvnseaActorSheetData<ActorType.PlayerCharacter>,
-    sheetData: SvnseaActorSheetData<ActorType.PlayerCharacter>,
-  ): void {
-    sheetData.fear = data.document.system.fear;
-    sheetData.monsterqualities = getItems(data, 'monsterquality');
+  override getData(): any {
+    const actorData = this.actor.system;
+    const traits = traitsToSheetData<VillainTraits>(actorData.traits);
+
+    const sheetData: SS2MonsterSheetData = {
+      ...super.getData(),
+      ...getActorSheetBase(this.actor),
+      // TODO: Sheet doesn't seem to match the template?
+      // So the sheet has fates (virtues/hubriss) and concept.
+      // ...getActorSheetDetails(this.actor),
+      traits,
+      fear: actorData.fear,
+      monsterqualities: getItems(this.actor, 'monsterquality'),
+    };
+    return sheetData;
   }
+
+  override activateListeners(html: JQuery) {
+    super.activateListeners(html);
+
+    // Handle rollable abilities.
+    registerVillainRollables(this.actor, html);
+  }
+}
+
+export interface SS2MonsterActorSheet {
+  get actor(): SS2MonsterActor;
 }
